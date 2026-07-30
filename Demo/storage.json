@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.44.1.10279",
+      "templateHash": "17244325940271383241"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "accountName": {
+      "type": "string",
+      "defaultValue": "st$[uniquestring(resourceGroup().id)]"
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "Standard_LRS"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2022-09-01",
+      "name": "name",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "skuName"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "accessTier": "Cool"
+      }
+    }
+  ],
+  "outputs": {
+    "storageAccountName": {
+      "type": "string",
+      "value": "name"
+    }
+  }
+}
