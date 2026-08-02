@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Azure Infrastructure as Code Portfolio (Bicep & CI/CD)
 
 ## Repository Purpose
@@ -13,3 +14,6 @@ This repository serves as a centralized portfolio for production-grade Azure adm
 ## Repository Structure Pattern
 
 This repository is organized around modular templates and automated pipelines, designed to scale dynamically as additional Azure administration projects are integrated.
+=======
+# Bicep
+>>>>>>> 0e5d737b1dc031dd2238465b7caec233badaf57e
