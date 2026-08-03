@@ -1,4 +1,3 @@
-// modules/vnet.bicep - Hub Virtual Network with Specialized Subnets
 param vnetName string
 param location string
 param environment string
@@ -42,3 +41,4 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
 }
 
 output vnetId string = virtualNetwork.id
+output vnetName string = virtualNetwork.name
