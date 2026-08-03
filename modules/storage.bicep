@@ -1,4 +1,3 @@
-// modules/storage.bicep - Secure Storage Account Blueprint
 param storageAccountName string
 param location string
 param environment string
@@ -12,9 +11,9 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
   kind: 'StorageV2'
   properties: {
+    allowBlobPublicAccess: false
     minimumTlsVersion: 'TLS1_2'
     supportsHttpsTrafficOnly: true
-    allowBlobPublicAccess: false
   }
   tags: {
     Environment: environment
