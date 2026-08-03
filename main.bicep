@@ -9,11 +9,21 @@ param environment string = 'dev'
 @description('Project or owner tag for Azure governance.')
 param owner string = 'Aaron'
 
+@description('Administrator username for the Virtual Machine.')
+param adminUsername string = 'azureuser'
+
+@description('Administrator password for the Virtual Machine.')
+@secure()
+param adminPasswordOrKey string
+
 var uniqueSuffix = uniqueString(resourceGroup().id)
 var storageAccountName = 'st${environment}${uniqueSuffix}'
 var hubVnetName = 'vnet-hub-${environment}-${location}'
 var spokeVnetName = 'vnet-spoke-${environment}-${location}'
+var nsgName = 'nsg-spoke-${environment}-${location}'
+var vmName = 'vm${environment}01'
 
+// Module 1: Secure Storage Account
 module storageModule 'modules/storage.bicep' = {
   name: 'deployStorageAccountModule'
   params: {
@@ -24,6 +34,7 @@ module storageModule 'modules/storage.bicep' = {
   }
 }
 
+// Module 2: Hub Virtual Network
 module hubVnetModule 'modules/vnet.bicep' = {
   name: 'deployHubVNetModule'
   params: {
@@ -34,6 +45,7 @@ module hubVnetModule 'modules/vnet.bicep' = {
   }
 }
 
+// Module 3: Spoke Virtual Network
 module spokeVnetModule 'modules/spoke-vnet.bicep' = {
   name: 'deploySpokeVNetModule'
   params: {
@@ -44,6 +56,7 @@ module spokeVnetModule 'modules/spoke-vnet.bicep' = {
   }
 }
 
+// Module 4: Peering from Hub to Spoke
 module hubToSpokePeering 'modules/vnet-peering.bicep' = {
   name: 'deployHubToSpokePeering'
   params: {
@@ -53,6 +66,7 @@ module hubToSpokePeering 'modules/vnet-peering.bicep' = {
   }
 }
 
+// Module 5: Peering from Spoke to Hub
 module spokeToHubPeering 'modules/vnet-peering.bicep' = {
   name: 'deploySpokeToHubPeering'
   params: {
@@ -62,6 +76,34 @@ module spokeToHubPeering 'modules/vnet-peering.bicep' = {
   }
 }
 
+// Module 6: Network Security Group for Spoke Subnet
+module nsgModule 'modules/nsg.bicep' = {
+  name: 'deployNsgModule'
+  params: {
+    nsgName: nsgName
+    location: location
+    environment: environment
+    owner: owner
+  }
+}
+
+// Module 7: Virtual Machine in Spoke Subnet
+module vmModule 'modules/vm.bicep' = {
+  name: 'deployVmModule'
+  params: {
+    vmName: vmName
+    location: location
+    subnetId: spokeVnetModule.outputs.workloadSubnetId
+    nsgId: nsgModule.outputs.nsgId
+    adminUsername: adminUsername
+    adminPasswordOrKey: adminPasswordOrKey
+    environment: environment
+    owner: owner
+  }
+}
+
+// Outputs
 output storageEndpoint string = storageModule.outputs.storageEndpoint
 output hubVnetId string = hubVnetModule.outputs.vnetId
 output spokeVnetId string = spokeVnetModule.outputs.spokeVnetId
+output vmId string = vmModule.outputs.vmId

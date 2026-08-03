@@ -1,4 +1,3 @@
-// modules/spoke-vnet.bicep - Spoke Workload Virtual Network
 param vnetName string
 param location string
 param environment string
@@ -31,3 +30,4 @@ resource spokeVNet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
 
 output spokeVnetId string = spokeVNet.id
 output spokeVnetName string = spokeVNet.name
+output workloadSubnetId string = spokeVNet.properties.subnets[0].id

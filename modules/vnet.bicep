@@ -1,4 +1,3 @@
-// modules/vnet.bicep - Hub Virtual Network with Specialized Subnets
 param vnetName string
 param location string
 param environment string
