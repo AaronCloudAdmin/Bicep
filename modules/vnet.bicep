@@ -1,4 +1,4 @@
-// modules/vnet.bicep - Virtual Network Blueprint
+// modules/vnet.bicep - Hub Virtual Network with Specialized Subnets
 param vnetName string
 param location string
 param environment string
@@ -15,13 +15,19 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
     }
     subnets: [
       {
-        name: 'frontend-subnet'
+        name: 'GatewaySubnet'
         properties: {
-          addressPrefix: '10.0.1.0/24'
+          addressPrefix: '10.0.0.0/24'
         }
       }
       {
-        name: 'backend-subnet'
+        name: 'AzureBastionSubnet'
+        properties: {
+          addressPrefix: '10.0.1.0/26'
+        }
+      }
+      {
+        name: 'shared-services-subnet'
         properties: {
           addressPrefix: '10.0.2.0/24'
         }
@@ -36,4 +42,3 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
 }
 
 output vnetId string = virtualNetwork.id
-output frontendSubnetId string = virtualNetwork.properties.subnets[0].id
