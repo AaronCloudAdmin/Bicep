@@ -13,6 +13,7 @@ param owner string = 'Aaron'
 // Enterprise Naming Convention: Ensure global uniqueness using uniqueString()
 var uniqueSuffix = uniqueString(resourceGroup().id)
 var storageAccountName = 'st${environment}${uniqueSuffix}' // Follows 3-24 char, lowercase alphanumeric rule
+var vnetName = 'vnet-${environment}-${location}'
 
 // Orchestrating Module 1: Calling the isolated Storage Blueprint
 module storageModule 'modules/storage.bicep' = {
@@ -25,6 +26,17 @@ module storageModule 'modules/storage.bicep' = {
   }
 }
 
-// Exposing outputs from the orchestrator tier
-output storageAccountName string = storageAccountName
-output storageAccountEndpoint string = storageModule.outputs.storageEndpoint
+// Module 2: Virtual Network with Subnets
+module vnetModule 'modules/vnet.bicep' = {
+  name: 'deployVNetModule'
+  params: {
+    vnetName: vnetName
+    location: location
+    environment: environment
+    owner: owner
+  }
+}
+
+// Outputs from the Orchestrator
+output storageEndpoint string = storageModule.outputs.storageEndpoint
+output vnetId string = vnetModule.outputs.vnetId
