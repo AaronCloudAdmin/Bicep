@@ -1,29 +1,30 @@
-// main.bicep
+// main.bicep - Enterprise Orchestrator Template
+targetScope = 'resourceGroup'
 
-@description('The target environment (e.g., dev, prod)')
-param environment string = 'dev'
-
-@description('The primary location for resources')
+@description('The Azure region where resources will be deployed.')
 param location string = resourceGroup().location
 
-// Array of workloads we want to create VNets for
-var workloads = [
-  'core'
-  'web'
-  'data'
-]
+@description('Environment prefix for naming and tagging (e.g., dev, prod).')
+param environment string = 'dev'
 
-// Loop through the workloads array to create multiple VNets
-// Name format: vnet-[workload]-[environment]-[location]-001
-module vnets 'Shared_Modules/vnet.bicep' = [
-  for (workload, i) in workloads: {
-    name: 'deploy-vnet-${workload}'
-    params: {
-      vnetName: 'vnet-${workload}-${environment}-${location}-001'
-      location: location
-      addressPrefixes: [
-        '10.0.${i}.0/24'
-      ]
-    }
+@description('Project or owner tag for Azure governance.')
+param owner string = 'Aaron'
+
+// Enterprise Naming Convention: Ensure global uniqueness using uniqueString()
+var uniqueSuffix = uniqueString(resourceGroup().id)
+var storageAccountName = 'st${environment}${uniqueSuffix}' // Follows 3-24 char, lowercase alphanumeric rule
+
+// Orchestrating Module 1: Calling the isolated Storage Blueprint
+module storageModule 'modules/storage.bicep' = {
+  name: 'deployStorageAccountModule'
+  params: {
+    storageAccountName: storageAccountName
+    location: location
+    environment: environment
+    owner: owner
   }
-]
+}
+
+// Exposing outputs from the orchestrator tier
+output storageAccountName string = storageAccountName
+output storageAccountEndpoint string = storageModule.outputs.storageEndpoint
