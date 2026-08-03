@@ -1,24 +1,39 @@
-// Shared_Modules/vnet.bicep
-
-@description('The custom, dynamic name of the Virtual Network')
+// modules/vnet.bicep - Virtual Network Blueprint
 param vnetName string
-
-@description('The Azure region where the resouce will be deployed')
 param location string
+param environment string
+param owner string
 
-@description('The addess space for the VNet')
-param addressPrefixes array
-
-// The resource declaration
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: vnetName
   location: location
   properties: {
     addressSpace: {
-      addressPrefixes: addressPrefixes
+      addressPrefixes: [
+        '10.0.0.0/16'
+      ]
     }
+    subnets: [
+      {
+        name: 'frontend-subnet'
+        properties: {
+          addressPrefix: '10.0.1.0/24'
+        }
+      }
+      {
+        name: 'backend-subnet'
+        properties: {
+          addressPrefix: '10.0.2.0/24'
+        }
+      }
+    ]
+  }
+  tags: {
+    Environment: environment
+    Owner: owner
+    ManagedBy: 'Bicep'
   }
 }
 
-// Output the ID so the main template can use it if needed
 output vnetId string = virtualNetwork.id
+output frontendSubnetId string = virtualNetwork.properties.subnets[0].id
