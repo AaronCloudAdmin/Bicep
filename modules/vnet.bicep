@@ -1,6 +1,6 @@
 param vnetName string
 param location string
-param environment string
+param environmentName string
 param owner string
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
@@ -34,7 +34,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
     ]
   }
   tags: {
-    Environment: environment
+    Environment: environmentName
     Owner: owner
     ManagedBy: 'Bicep'
   }

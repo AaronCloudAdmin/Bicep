@@ -1,7 +1,7 @@
 // modules/nsg.bicep - Network Security Group Blueprint
 param nsgName string
 param location string
-param environment string
+param environmentName string
 param owner string
 
 resource nsg 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
@@ -25,7 +25,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
     ]
   }
   tags: {
-    Environment: environment
+    Environment: environmentName
     Owner: owner
     ManagedBy: 'Bicep'
   }

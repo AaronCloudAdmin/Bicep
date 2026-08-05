@@ -11,9 +11,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
   kind: 'StorageV2'
   properties: {
-    allowBlobPublicAccess: false
+    publicNetworkAccess: 'Disabled' // <-- This forces all traffic through the Private Endpoint!
     minimumTlsVersion: 'TLS1_2'
-    supportsHttpsTrafficOnly: true
   }
   tags: {
     Environment: environment
@@ -22,4 +21,6 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
+output storageAccountId string = storageAccount.id
+output storageAccountName string = storageAccount.name
 output storageEndpoint string = storageAccount.properties.primaryEndpoints.blob
