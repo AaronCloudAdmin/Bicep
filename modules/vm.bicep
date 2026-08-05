@@ -6,7 +6,7 @@ param nsgId string
 param adminUsername string
 @secure()
 param adminPasswordOrKey string
-param environment string
+param environmentName string
 param owner string
 
 resource nic 'Microsoft.Network/networkInterfaces@2023-09-01' = {
@@ -29,7 +29,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-09-01' = {
     }
   }
   tags: {
-    Environment: environment
+    Environment: environmentName
     Owner: owner
     ManagedBy: 'Bicep'
   }
@@ -70,7 +70,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
     }
   }
   tags: {
-    Environment: environment
+    Environment: environmentName
     Owner: owner
     ManagedBy: 'Bicep'
   }

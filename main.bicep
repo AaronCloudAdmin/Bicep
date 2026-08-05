@@ -40,7 +40,7 @@ module hubVnetModule 'modules/vnet.bicep' = {
   params: {
     vnetName: hubVnetName
     location: location
-    environment: environment
+    environmentName: environment
     owner: owner
   }
 }
@@ -51,7 +51,7 @@ module spokeVnetModule 'modules/spoke-vnet.bicep' = {
   params: {
     vnetName: spokeVnetName
     location: location
-    environment: environment
+    environmentName: environment
     owner: owner
   }
 }
@@ -82,7 +82,7 @@ module nsgModule 'modules/nsg.bicep' = {
   params: {
     nsgName: nsgName
     location: location
-    environment: environment
+    environmentName: environment
     owner: owner
   }
 }
@@ -97,7 +97,7 @@ module vmModule 'modules/vm.bicep' = {
     nsgId: nsgModule.outputs.nsgId
     adminUsername: adminUsername
     adminPasswordOrKey: adminPasswordOrKey
-    environment: environment
+    environmentName: environment
     owner: owner
   }
 }
@@ -116,9 +116,26 @@ module privateDnsModule 'modules/private-dns.bicep' = {
   }
 }
 
+// Module 9: Private Endpoint Module for Storage Blob
+module storagePrivateEndpoint './modules/private-endpoint.bicep' = {
+  name: 'deployStoragePrivateEndpoint'
+  params: {
+    location: location
+    storageAccountId: storageModule.outputs.storageAccountId
+    storageAccountName: storageModule.outputs.storageAccountName
+    subnetId: spokeVnetModule.outputs.workloadSubnetId
+    vnetId: spokeVnetModule.outputs.spokeVnetId
+    environmentName: environment
+    owner: owner
+  }
+}
+
 // Outputs
+output storageAccountName string = storageModule.outputs.storageAccountName
+output storageAccountId string = storageModule.outputs.storageAccountId
 output storageEndpoint string = storageModule.outputs.storageEndpoint
 output hubVnetId string = hubVnetModule.outputs.vnetId
 output spokeVnetId string = spokeVnetModule.outputs.spokeVnetId
 output vmId string = vmModule.outputs.vmId
 output privateDnsZoneId string = privateDnsModule.outputs.zoneId
+output privateEndpointName string = storagePrivateEndpoint.outputs.privateEndpointName
