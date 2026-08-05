@@ -102,8 +102,23 @@ module vmModule 'modules/vm.bicep' = {
   }
 }
 
+var privateDnsZoneName = 'internal.holleywood.local'
+
+// Module 8: Private DNS Zone and Links
+module privateDnsModule 'modules/private-dns.bicep' = {
+  name: 'deployPrivateDnsModule'
+  params: {
+    zoneName: privateDnsZoneName
+    hubVnetId: hubVnetModule.outputs.vnetId
+    spokeVnetId: spokeVnetModule.outputs.spokeVnetId
+    environment: environment
+    owner: owner
+  }
+}
+
 // Outputs
 output storageEndpoint string = storageModule.outputs.storageEndpoint
 output hubVnetId string = hubVnetModule.outputs.vnetId
 output spokeVnetId string = spokeVnetModule.outputs.spokeVnetId
 output vmId string = vmModule.outputs.vmId
+output privateDnsZoneId string = privateDnsModule.outputs.zoneId
