@@ -34,49 +34,7 @@ module storageModule 'modules/storage.bicep' = {
   }
 }
 
-// Module 2: Hub Virtual Network
-module hubVnetModule 'modules/vnet.bicep' = {
-  name: 'deployHubVNetModule'
-  params: {
-    vnetName: hubVnetName
-    location: location
-    environmentName: environment
-    owner: owner
-  }
-}
-
-// Module 3: Spoke Virtual Network
-module spokeVnetModule 'modules/spoke-vnet.bicep' = {
-  name: 'deploySpokeVNetModule'
-  params: {
-    vnetName: spokeVnetName
-    location: location
-    environmentName: environment
-    owner: owner
-  }
-}
-
-// Module 4: Peering from Hub to Spoke
-module hubToSpokePeering 'modules/vnet-peering.bicep' = {
-  name: 'deployHubToSpokePeering'
-  params: {
-    peeringName: 'hub-to-spoke-peering'
-    localVnetName: hubVnetModule.outputs.vnetName
-    remoteVnetId: spokeVnetModule.outputs.spokeVnetId
-  }
-}
-
-// Module 5: Peering from Spoke to Hub
-module spokeToHubPeering 'modules/vnet-peering.bicep' = {
-  name: 'deploySpokeToHubPeering'
-  params: {
-    peeringName: 'spoke-to-hub-peering'
-    localVnetName: spokeVnetModule.outputs.spokeVnetName
-    remoteVnetId: hubVnetModule.outputs.vnetId
-  }
-}
-
-// Module 6: Network Security Group for Spoke Subnet
+// Module 2: Network Security Group (Baseline for workloads)
 module nsgModule 'modules/nsg.bicep' = {
   name: 'deployNsgModule'
   params: {
@@ -87,7 +45,62 @@ module nsgModule 'modules/nsg.bicep' = {
   }
 }
 
-// Module 7: Virtual Machine in Spoke Subnet
+// Module 3: Hub Virtual Network (excluding Gateway and Bastion subnets from workload NSG)
+module hubVnetModule 'modules/vnet.bicep' = {
+  name: 'deployHubVNetModule'
+  params: {
+    vnetName: hubVnetName
+    location: location
+    environmentName: environment
+    owner: owner
+    nsgId: nsgModule.outputs.nsgId
+  }
+}
+
+// Module 4: Spoke Virtual Network (Hosting the Workload Subnet)
+module spokeVnetModule 'modules/spoke-vnet.bicep' = {
+  name: 'deploySpokeVNetModule'
+  params: {
+    vnetName: spokeVnetName
+    location: location
+    environmentName: environment
+    owner: owner
+    nsgId: nsgModule.outputs.nsgId
+  }
+}
+
+// Module 5: Peering from Hub to Spoke
+module hubToSpokePeering 'modules/vnet-peering.bicep' = {
+  name: 'deployHubToSpokePeering'
+  params: {
+    peeringName: 'hub-to-spoke-peering'
+    localVnetName: hubVnetModule.outputs.vnetName
+    remoteVnetId: spokeVnetModule.outputs.spokeVnetId
+  }
+}
+
+// Module 6: Peering from Spoke to Hub
+module spokeToHubPeering 'modules/vnet-peering.bicep' = {
+  name: 'deploySpokeToHubPeering'
+  params: {
+    peeringName: 'spoke-to-hub-peering'
+    localVnetName: spokeVnetModule.outputs.spokeVnetName
+    remoteVnetId: hubVnetModule.outputs.vnetId
+  }
+}
+
+// Module 7: Standard Layer 4 Load Balancer (Scoped to the Spoke Workload Tier)
+module loadBalancerModule './modules/load-balancer.bicep' = {
+  name: 'deploySpokeLoadBalancer'
+  params: {
+    location: location
+    lbName: 'lb-${environment}-spoke-workload'
+    environment: environment
+    owner: owner
+  }
+}
+
+// Module 8: Virtual Machine in Spoke Subnet
 module vmModule 'modules/vm.bicep' = {
   name: 'deployVmModule'
   params: {
@@ -104,7 +117,7 @@ module vmModule 'modules/vm.bicep' = {
 
 var privateDnsZoneName = 'internal.holleywood.local'
 
-// Module 8: Private DNS Zone and Links
+// Module 9: Private DNS Zone and Links
 module privateDnsModule 'modules/private-dns.bicep' = {
   name: 'deployPrivateDnsModule'
   params: {
@@ -116,7 +129,7 @@ module privateDnsModule 'modules/private-dns.bicep' = {
   }
 }
 
-// Module 9: Private Endpoint Module for Storage Blob
+// Module 10: Private Endpoint Module for Storage Blob
 module storagePrivateEndpoint './modules/private-endpoint.bicep' = {
   name: 'deployStoragePrivateEndpoint'
   params: {
@@ -126,17 +139,6 @@ module storagePrivateEndpoint './modules/private-endpoint.bicep' = {
     subnetId: spokeVnetModule.outputs.workloadSubnetId
     vnetId: spokeVnetModule.outputs.spokeVnetId
     environmentName: environment
-    owner: owner
-  }
-}
-
-// Module 10: Standard Layer 4 Load Balancer
-module loadBalancerModule './modules/load-balancer.bicep' = {
-  name: 'deployLoadBalancer'
-  params: {
-    location: location
-    lbName: 'lb-${environment}-workload'
-    environment: environment
     owner: owner
   }
 }
