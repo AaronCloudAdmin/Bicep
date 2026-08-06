@@ -34,7 +34,7 @@ module storageModule 'modules/storage.bicep' = {
   }
 }
 
-// Module 2: Network Security Group (Deployed first so its ID can be passed to subnets)
+// Module 2: Network Security Group (Baseline for workloads)
 module nsgModule 'modules/nsg.bicep' = {
   name: 'deployNsgModule'
   params: {
@@ -45,7 +45,7 @@ module nsgModule 'modules/nsg.bicep' = {
   }
 }
 
-// Module 3: Hub Virtual Network (with NSG bound to Hub subnets)
+// Module 3: Hub Virtual Network (excluding Gateway and Bastion subnets from workload NSG)
 module hubVnetModule 'modules/vnet.bicep' = {
   name: 'deployHubVNetModule'
   params: {
@@ -57,7 +57,7 @@ module hubVnetModule 'modules/vnet.bicep' = {
   }
 }
 
-// Module 4: Spoke Virtual Network (with NSG bound to Spoke workload subnets)
+// Module 4: Spoke Virtual Network (Hosting the Workload Subnet)
 module spokeVnetModule 'modules/spoke-vnet.bicep' = {
   name: 'deploySpokeVNetModule'
   params: {
@@ -89,7 +89,18 @@ module spokeToHubPeering 'modules/vnet-peering.bicep' = {
   }
 }
 
-// Module 7: Virtual Machine in Spoke Subnet
+// Module 7: Standard Layer 4 Load Balancer (Scoped to the Spoke Workload Tier)
+module loadBalancerModule './modules/load-balancer.bicep' = {
+  name: 'deploySpokeLoadBalancer'
+  params: {
+    location: location
+    lbName: 'lb-${environment}-spoke-workload'
+    environment: environment
+    owner: owner
+  }
+}
+
+// Module 8: Virtual Machine in Spoke Subnet
 module vmModule 'modules/vm.bicep' = {
   name: 'deployVmModule'
   params: {
@@ -106,7 +117,7 @@ module vmModule 'modules/vm.bicep' = {
 
 var privateDnsZoneName = 'internal.holleywood.local'
 
-// Module 8: Private DNS Zone and Links
+// Module 9: Private DNS Zone and Links
 module privateDnsModule 'modules/private-dns.bicep' = {
   name: 'deployPrivateDnsModule'
   params: {
@@ -118,7 +129,7 @@ module privateDnsModule 'modules/private-dns.bicep' = {
   }
 }
 
-// Module 9: Private Endpoint Module for Storage Blob
+// Module 10: Private Endpoint Module for Storage Blob
 module storagePrivateEndpoint './modules/private-endpoint.bicep' = {
   name: 'deployStoragePrivateEndpoint'
   params: {
@@ -128,17 +139,6 @@ module storagePrivateEndpoint './modules/private-endpoint.bicep' = {
     subnetId: spokeVnetModule.outputs.workloadSubnetId
     vnetId: spokeVnetModule.outputs.spokeVnetId
     environmentName: environment
-    owner: owner
-  }
-}
-
-// Module 10: Standard Layer 4 Load Balancer
-module loadBalancerModule './modules/load-balancer.bicep' = {
-  name: 'deployLoadBalancer'
-  params: {
-    location: location
-    lbName: 'lb-${environment}-workload'
-    environment: environment
     owner: owner
   }
 }

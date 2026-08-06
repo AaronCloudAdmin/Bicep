@@ -2,7 +2,7 @@ param vnetName string
 param location string
 param environmentName string
 param owner string
-param nsgId string // <--- Added parameter for the baseline NSG
+param nsgId string
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: vnetName
@@ -18,18 +18,14 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
         name: 'GatewaySubnet'
         properties: {
           addressPrefix: '10.0.0.0/24'
-          networkSecurityGroup: {
-            id: nsgId // <--- Bound to Hub subnets
-          }
+          // No NSG allowed here (managed by VPN/ExpressRoute gateway plane)
         }
       }
       {
         name: 'AzureBastionSubnet'
         properties: {
           addressPrefix: '10.0.1.0/26'
-          networkSecurityGroup: {
-            id: nsgId // <--- Bound to Hub subnets
-          }
+          // No workload NSG allowed here (managed by Azure Bastion platform)
         }
       }
       {
@@ -37,7 +33,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
         properties: {
           addressPrefix: '10.0.2.0/24'
           networkSecurityGroup: {
-            id: nsgId // <--- Bound to Hub subnets
+            id: nsgId // Safe to attach here for standard VMs/workloads
           }
         }
       }
