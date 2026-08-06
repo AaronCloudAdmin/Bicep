@@ -34,7 +34,18 @@ module storageModule 'modules/storage.bicep' = {
   }
 }
 
-// Module 2: Hub Virtual Network
+// Module 2: Network Security Group (Deployed first so its ID can be passed to subnets)
+module nsgModule 'modules/nsg.bicep' = {
+  name: 'deployNsgModule'
+  params: {
+    nsgName: nsgName
+    location: location
+    environmentName: environment
+    owner: owner
+  }
+}
+
+// Module 3: Hub Virtual Network (with NSG bound to Hub subnets)
 module hubVnetModule 'modules/vnet.bicep' = {
   name: 'deployHubVNetModule'
   params: {
@@ -42,10 +53,11 @@ module hubVnetModule 'modules/vnet.bicep' = {
     location: location
     environmentName: environment
     owner: owner
+    nsgId: nsgModule.outputs.nsgId
   }
 }
 
-// Module 3: Spoke Virtual Network
+// Module 4: Spoke Virtual Network (with NSG bound to Spoke workload subnets)
 module spokeVnetModule 'modules/spoke-vnet.bicep' = {
   name: 'deploySpokeVNetModule'
   params: {
@@ -53,10 +65,11 @@ module spokeVnetModule 'modules/spoke-vnet.bicep' = {
     location: location
     environmentName: environment
     owner: owner
+    nsgId: nsgModule.outputs.nsgId
   }
 }
 
-// Module 4: Peering from Hub to Spoke
+// Module 5: Peering from Hub to Spoke
 module hubToSpokePeering 'modules/vnet-peering.bicep' = {
   name: 'deployHubToSpokePeering'
   params: {
@@ -66,24 +79,13 @@ module hubToSpokePeering 'modules/vnet-peering.bicep' = {
   }
 }
 
-// Module 5: Peering from Spoke to Hub
+// Module 6: Peering from Spoke to Hub
 module spokeToHubPeering 'modules/vnet-peering.bicep' = {
   name: 'deploySpokeToHubPeering'
   params: {
     peeringName: 'spoke-to-hub-peering'
     localVnetName: spokeVnetModule.outputs.spokeVnetName
     remoteVnetId: hubVnetModule.outputs.vnetId
-  }
-}
-
-// Module 6: Network Security Group for Spoke Subnet
-module nsgModule 'modules/nsg.bicep' = {
-  name: 'deployNsgModule'
-  params: {
-    nsgName: nsgName
-    location: location
-    environmentName: environment
-    owner: owner
   }
 }
 

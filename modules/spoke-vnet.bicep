@@ -2,6 +2,7 @@ param vnetName string
 param location string
 param environmentName string
 param owner string
+param nsgId string // <--- Added parameter for the baseline NSG
 
 resource spokeVNet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: vnetName
@@ -17,6 +18,9 @@ resource spokeVNet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
         name: 'workload-subnet'
         properties: {
           addressPrefix: '10.1.1.0/24'
+          networkSecurityGroup: {
+            id: nsgId // <--- Bound to Spoke workload subnet
+          }
         }
       }
     ]
