@@ -130,6 +130,17 @@ module storagePrivateEndpoint './modules/private-endpoint.bicep' = {
   }
 }
 
+// Module 10: Standard Layer 4 Load Balancer
+module loadBalancerModule './modules/load-balancer.bicep' = {
+  name: 'deployLoadBalancer'
+  params: {
+    location: location
+    lbName: 'lb-${environment}-workload'
+    environment: environment
+    owner: owner
+  }
+}
+
 // Outputs
 output storageAccountName string = storageModule.outputs.storageAccountName
 output storageAccountId string = storageModule.outputs.storageAccountId
@@ -139,3 +150,6 @@ output spokeVnetId string = spokeVnetModule.outputs.spokeVnetId
 output vmId string = vmModule.outputs.vmId
 output privateDnsZoneId string = privateDnsModule.outputs.zoneId
 output privateEndpointName string = storagePrivateEndpoint.outputs.privateEndpointName
+output loadBalancerId string = loadBalancerModule.outputs.loadBalancerId
+output loadBalancerName string = loadBalancerModule.outputs.loadBalancerName
+output loadBalancerBackendPoolId string = loadBalancerModule.outputs.backendPoolId
